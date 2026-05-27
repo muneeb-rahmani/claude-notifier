@@ -93,15 +93,19 @@ app.get("/decision/:id", (req, res) => {
   res.json({ status: entry.status });
 });
 
-// Telegram sends callback_query here when user taps a button
-app.post("/telegram-webhook", async (req, res) => {
-  const update = req.body;
-  res.sendStatus(200); // Acknowledge immediately
+app.get("/health", (_req, res) => res.json({ ok: true }));
 
+app.listen(PORT, () => {
+  console.log(`Claude Telegram Notifier running on port ${PORT}`);
+  startPolling();
+});
+
+// Long polling — no HTTPS/domain needed
+async function processUpdate(update) {
   const query = update.callback_query;
   if (!query) return;
 
-  const [action, id] = query.data.split(":");
+  const [action, id] = (query.data || "").split(":");
   const entry = requests.get(id);
 
   if (!entry) {
@@ -126,7 +130,6 @@ app.post("/telegram-webhook", async (req, res) => {
   const emoji = decision === "approved" ? "✅" : "❌";
   const label = decision === "approved" ? "Approved" : "Rejected";
 
-  // Update the message to remove buttons and confirm decision
   await sendTelegram("editMessageReplyMarkup", {
     chat_id: query.message.chat.id,
     message_id: query.message.message_id,
@@ -137,10 +140,32 @@ app.post("/telegram-webhook", async (req, res) => {
     callback_query_id: query.id,
     text: `${emoji} ${label}`,
   });
-});
+}
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+async function startPolling() {
+  // Clear any existing webhook so polling works
+  await sendTelegram("deleteWebhook", {}).catch(() => {});
 
-app.listen(PORT, () => {
-  console.log(`Claude Telegram Notifier running on port ${PORT}`);
-});
+  let offset = 0;
+  console.log("Telegram long polling started");
+
+  while (true) {
+    try {
+      const data = await sendTelegram("getUpdates", {
+        offset,
+        timeout: 30,
+        allowed_updates: ["callback_query"],
+      });
+
+      if (data.ok && data.result.length > 0) {
+        for (const update of data.result) {
+          offset = update.update_id + 1;
+          processUpdate(update).catch(console.error);
+        }
+      }
+    } catch (err) {
+      console.error("Polling error:", err.message);
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+}

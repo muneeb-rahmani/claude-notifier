@@ -43,16 +43,6 @@ pm2 save
 pm2 startup
 ```
 
-### Register Telegram Webhook
-
-Telegram needs to know where to send button callbacks. Run this once (replace values):
-
-```bash
-curl "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=http://YOUR_VPS_IP:3456/telegram-webhook"
-```
-
-Expected response: `{"ok":true,"result":true,...}`
-
 ### Test the server
 
 ```bash
