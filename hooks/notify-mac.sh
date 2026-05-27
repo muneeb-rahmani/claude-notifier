@@ -3,7 +3,7 @@
 # Sends tool request to Telegram via notifier server, waits for Approve/Reject
 # Exit 0 = approved, Exit 2 = rejected/timeout (Claude Code blocks the tool)
 
-SERVER_URL="${CLAUDE_NOTIFIER_URL:-http://YOUR_VPS_IP:3456}"
+SERVER_URL="${CLAUDE_NOTIFIER_URL:-http://claude.148.135.138.174.sslip.io}"
 TIMEOUT_SECONDS=120
 POLL_INTERVAL=2
 MACHINE=$(hostname)

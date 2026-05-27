@@ -5,7 +5,7 @@
 param()
 
 $SERVER_URL = $env:CLAUDE_NOTIFIER_URL
-if (-not $SERVER_URL) { $SERVER_URL = "http://YOUR_VPS_IP:3456" }
+if (-not $SERVER_URL) { $SERVER_URL = "http://claude.148.135.138.174.sslip.io" }
 
 $TIMEOUT_SECONDS = 120
 $POLL_INTERVAL = 2
