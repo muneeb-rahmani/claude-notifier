@@ -93,6 +93,7 @@ app.get("/decision/:id", (req, res) => {
   res.json({ status: entry.status });
 });
 
+app.get("/", (_req, res) => res.json({ ok: true }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
